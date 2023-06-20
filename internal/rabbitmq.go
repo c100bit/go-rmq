@@ -51,3 +51,26 @@ func (rc RabbitClient) Send(ctx context.Context, exchange, routingKey string, op
 		options,
 	)
 }
+
+func (rc RabbitClient) SendWithDefferedConfirm(ctx context.Context, exchange, routingKey string, options amqp.Publishing) error {
+	confirmation, err := rc.ch.PublishWithDeferredConfirmWithContext(
+		ctx,
+		exchange,
+		routingKey,
+		true,
+		false,
+		options,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	confirmation.Wait()
+	return nil
+}
+
+func (rc RabbitClient) Consume(queue, consumer string, autoAck bool) (<-chan amqp.Delivery, error) {
+	return rc.ch.Consume(queue, consumer, autoAck, false, false, false, nil)
+
+}

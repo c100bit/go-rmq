@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	conn, err := internal.ConnectRabbitMQ("percy", "secret", "localhost:5672", "customers")
+	conn, err := internal.ConnectRabbitMQ("guest", "guest", "localhost:5672", "/")
 	if err != nil {
 		panic(err)
 	}
@@ -40,13 +40,14 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
-	if err := client.Send(ctx, "customer_events", "customers.created.us", amqp091.Publishing{
-		ContentType:  "text/plain",
-		DeliveryMode: amqp091.Persistent,
-		Body:         []byte(`An cool message between services`),
-	}); err != nil {
-		panic(err)
+	for i := 0; i < 10; i++ {
+		if err := client.Send(ctx, "customer_events", "customers.created.us", amqp091.Publishing{
+			ContentType:  "text/plain",
+			DeliveryMode: amqp091.Persistent,
+			Body:         []byte(`An cool message between services`),
+		}); err != nil {
+			panic(err)
+		}
 	}
 
 	if err := client.Send(ctx, "customer_events", "customers.test", amqp091.Publishing{
