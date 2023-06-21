@@ -43,6 +43,18 @@ func workerPool() {
 		}()
 	}
 
+	go func() {
+		for i := 0; i < 1000; i++ {
+			numbersToProcess <- i
+		}
+		close(numbersToProcess)
+	}()
+
+	go func() {
+		wg.Wait()
+		close(processedNumbers)
+	}()
+
 }
 
 func worker(ctx context.Context, toProcess <-chan int, processed chan<- int) {
